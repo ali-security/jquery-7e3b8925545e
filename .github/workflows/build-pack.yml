@@ -1,0 +1,28 @@
+name: build-pack
+on:
+  workflow_dispatch:
+jobs:
+  pack:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '0.10'
+      - name: Install
+        run: npm install
+      - name: Build (grunt default task)
+        run: ./node_modules/.bin/grunt
+      - name: Generate dist/cdn release copies
+        run: node .github/scripts/make-cdn-copies.js
+      - name: Pack
+        run: |
+          rm -rf .github
+          npm pack
+          mkdir -p out && mv jquery-1.11.1.tgz out/
+          tar tzf out/jquery-1.11.1.tgz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jquery-npm
+          path: out/jquery-1.11.1.tgz
